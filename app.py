@@ -1,5 +1,5 @@
 """
-  ניהול הכנסות וחייבים WINESIL
+קופה — ניהול הכנסות וחייבים (Streamlit + Google Sheets)
 =========================================================
 אפליקציית קופה לחנות יין שמתחברת ישירות לקובץ wine_inventory ב-Google Sheets.
 כל הנתונים נשמרים בגיליון עצמו — לא תלוי ב-Claude, נגיש מכל מכשיר/דפדפן.
@@ -249,6 +249,10 @@ except Exception as e:
 
 inv_ws, sales_ws, cust_ws, pay_ws = ws_map["inv"], ws_map["sales"], ws_map["cust"], ws_map["pay"]
 
+if st.session_state.get("flash_msg"):
+    st.success(st.session_state["flash_msg"])
+    del st.session_state["flash_msg"]
+
 if st.button("🔄 רענן נתונים מהגיליון"):
     clear_data_cache()
     st.rerun()
@@ -305,7 +309,7 @@ with tab_register:
                             add_customer(cust_ws, new_cust_name.strip(), new_cust_phone.strip())
                             clear_data_cache()
                             reset_fields(["new_cust_name_reg", "new_cust_phone_reg"])
-                            st.toast(f"✅ נוסף לקוח: {new_cust_name}")
+                            st.session_state["flash_msg"] = f"✅ נוסף לקוח: {new_cust_name}"
                             st.rerun()
                         else:
                             st.warning("הזן שם לקוח")
@@ -331,7 +335,7 @@ with tab_register:
                     clear_data_cache()
                     sale_summary = f"✅ נרשם: {row['display_name']} — ₪{line_total:,.0f}"
                     reset_fields(["sale_item", "sale_qty", "open_price_input", "sale_method", "sale_customer"])
-                    st.toast(sale_summary)
+                    st.session_state["flash_msg"] = sale_summary
                     st.rerun()
 
 # ---- מלאי ----
@@ -370,7 +374,7 @@ with tab_inventory:
                 clear_data_cache()
                 reset_fields(["inv_producer", "inv_wine_name", "inv_year", "inv_wtype",
                               "inv_open_price", "inv_buy_price", "inv_sell_price", "inv_stock"])
-                st.toast(f"✅ נוסף: {wine_name}")
+                st.session_state["flash_msg"] = f"✅ נוסף: {wine_name}"
                 st.rerun()
 
 
@@ -396,7 +400,7 @@ with tab_debtors:
                             append_payment(pay_ws, c["שם"], amt)
                             clear_data_cache()
                             reset_fields([f"pay_{c['_row']}"])
-                            st.toast(f"✅ נרשם תשלום ₪{amt:,.0f}")
+                            st.session_state["flash_msg"] = f"✅ נרשם תשלום ₪{amt:,.0f}"
                             st.rerun()
         else:
             st.write("כל הלקוחות מסודרים 🎉")
@@ -411,7 +415,7 @@ with tab_debtors:
                 add_customer(cust_ws, cname.strip(), cphone.strip())
                 clear_data_cache()
                 reset_fields(["new_cust_name_debtors", "new_cust_phone_debtors"])
-                st.toast(f"✅ נוסף לקוח: {cname}")
+                st.session_state["flash_msg"] = f"✅ נוסף לקוח: {cname}"
                 st.rerun()
             else:
                 st.warning("הזן שם לקוח")
