@@ -126,7 +126,7 @@ def reset_fields(keys):
 # שכבת קריאה מהגיליון — עם קאש קצר-טווח, כדי לא לחרוג ממכסת הקריאות של גוגל
 # ----------------------------------------------------------------------------
 @st.cache_data(ttl=DATA_TTL, show_spinner=False)
-def fetch_raw_values(_ws, _cache_key):
+def fetch_raw_values(_ws, cache_key):
     """קורא את כל הערכים מגיליון מסוים. _cache_key רק כדי להבדיל בין הגיליונות בקאש."""
     values = _ws.get_all_values()
     if values:
