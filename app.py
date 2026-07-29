@@ -1,5 +1,5 @@
 """
-קופה — ניהול הכנסות וחייבים (Streamlit + Google Sheets)
+קופה — ניהול הכנסות וחייבים WINESIL 
 =========================================================
 אפליקציית קופה לחנות יין שמתחברת ישירות לקובץ wine_inventory ב-Google Sheets.
 כל הנתונים נשמרים בגיליון עצמו — לא תלוי ב-Claude, נגיש מכל מכשיר/דפדפן.
@@ -139,7 +139,13 @@ def load_inventory_df(ws):
     df = pd.DataFrame(values[1:], columns=headers)
     df["_row"] = range(2, 2 + len(df))
 
+    if "שם היין" not in df.columns:
+        return pd.DataFrame(columns=["_row"])
     df = df[df["שם היין"].astype(str).str.strip() != ""].copy()
+
+    for col in ["יקב", "שנה"]:
+        if col not in df.columns:
+            df[col] = ""
 
     for col in ["מחיר מכירה", "מלאי", "נמכר", "נמכר החודש"]:
         if col in df.columns:
@@ -164,6 +170,9 @@ def load_customers_df(ws):
         return pd.DataFrame(columns=CUSTOMERS_COLS + ["_row"])
     df = pd.DataFrame(values[1:], columns=values[0])
     df["_row"] = range(2, 2 + len(df))
+    for col in CUSTOMERS_COLS:
+        if col not in df.columns:
+            df[col] = 0 if col == "יתרת חוב" else ""
     df["יתרת חוב"] = pd.to_numeric(df["יתרת חוב"], errors="coerce").fillna(0)
     return df.reset_index(drop=True)
 
