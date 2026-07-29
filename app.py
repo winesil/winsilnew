@@ -1,5 +1,5 @@
 """
-קופה — ניהול הכנסות וחייבים WINESIL 
+קופה — ניהול הכנסות וחייבים WINESIL
 =========================================================
 אפליקציית קופה לחנות יין שמתחברת ישירות לקובץ wine_inventory ב-Google Sheets.
 כל הנתונים נשמרים בגיליון עצמו — לא תלוי ב-Claude, נגיש מכל מכשיר/דפדפן.
@@ -80,11 +80,11 @@ def _get_or_create_ws(sh, name, headers):
 
 def _ensure_extra_columns(ws, extra_cols):
     """מוסיף עמודות חדשות בסוף אם עדיין לא קיימות (בלי לפגוע בעמודות הקיימות)."""
-    headers = ws.row_values(1)
+    headers = [h.strip() for h in ws.row_values(1)]
     for col in extra_cols:
         if col not in headers:
             ws.update_cell(1, len(headers) + 1, col)
-            headers = ws.row_values(1)
+            headers = [h.strip() for h in ws.row_values(1)]
     return headers
 
 
@@ -128,7 +128,10 @@ def reset_fields(keys):
 @st.cache_data(ttl=DATA_TTL, show_spinner=False)
 def fetch_raw_values(_ws, _cache_key):
     """קורא את כל הערכים מגיליון מסוים. _cache_key רק כדי להבדיל בין הגיליונות בקאש."""
-    return _ws.get_all_values()
+    values = _ws.get_all_values()
+    if values:
+        values[0] = [h.strip() for h in values[0]]  # מנקה רווחים נסתרים משמות העמודות
+    return values
 
 
 def load_inventory_df(ws):
@@ -181,7 +184,12 @@ def load_sales_log_df(ws):
     values = fetch_raw_values(ws, "sales_log")
     if len(values) <= 1:
         return pd.DataFrame(columns=SALES_LOG_BASE_COLS + SALES_LOG_EXTRA_COLS)
-    return pd.DataFrame(values[1:], columns=values[0])
+    headers = values[0]
+    df = pd.DataFrame(values[1:], columns=headers)
+    for col in SALES_LOG_BASE_COLS + SALES_LOG_EXTRA_COLS:
+        if col not in df.columns:
+            df[col] = ""
+    return df
 
 
 # ----------------------------------------------------------------------------
